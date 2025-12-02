@@ -84,7 +84,7 @@ export default [
             },
         ],
     },
-    // Sign up
+    // Crear cuenta
     {
         path: 'sign-up',
         children: [

@@ -84,7 +84,7 @@
                     <a
                         class="ml-1 text-primary-500 hover:underline"
                         [routerLink]="['/sign-up']"
-                        >Sign up
+                        >Crear cuenta
                     </a>
                 </div>
 
@@ -116,7 +116,7 @@
                             [formControlName]="'email'"
                         />
                         @if (signInForm.get('email').hasError('required')) {
-                            <mat-error> Dirección de correo electrónico is required </mat-error>
+                            <mat-error> Dirección de correo electrónico es requerido </mat-error>
                         }
                         @if (signInForm.get('email').hasError('email')) {
                             <mat-error>
@@ -127,7 +127,7 @@
 
                     <!-- Password field -->
                     <mat-form-field class="w-full">
-                        <mat-label>Password</mat-label>
+                        <mat-label>Contraseña</mat-label>
                         <input
                             id="password"
                             matInput
@@ -158,7 +158,7 @@
                                 ></mat-icon>
                             }
                         </button>
-                        <mat-error> Password is required </mat-error>
+                        <mat-error> Password es requerido </mat-error>
                     </mat-form-field>
 
                     <!-- Actions -->

@@ -78,7 +78,7 @@ export class AuthSignUpComponent implements OnInit {
     // -----------------------------------------------------------------------------------------------------
 
     /**
-     * Sign up
+     * Crear cuenta
      */
     signUp(): void {
         // Do nothing if the form is invalid
@@ -92,7 +92,7 @@ export class AuthSignUpComponent implements OnInit {
         // Hide the alert
         this.showAlert = false;
 
-        // Sign up
+        // Crear cuenta
         this._authService.signUp(this.signUpForm.value).subscribe(
             (response) => {
                 // Navigate to the confirmation required page

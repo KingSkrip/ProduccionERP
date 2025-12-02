@@ -12,10 +12,10 @@
             <div
                 class="mt-8 text-4xl font-extrabold leading-tight tracking-tight"
             >
-                Sign up
+                Crear cuenta
             </div>
             <div class="mt-0.5 flex items-baseline font-medium">
-                <div>Already have an account?</div>
+                <div>¿Ya tienes cuenta?</div>
                 <a
                     class="ml-1 text-primary-500 hover:underline"
                     [routerLink]="['/pages/authentication/sign-in']"
@@ -36,14 +36,14 @@
                 </fuse-alert>
             }
 
-            <!-- Sign Up form -->
+            <!-- Crear cuenta form -->
             <form class="mt-8" [formGroup]="signUpForm">
                 <!-- Name field -->
                 <mat-form-field class="w-full">
-                    <mat-label>Full name</mat-label>
+                    <mat-label>Nombre completo</mat-label>
                     <input id="name" matInput [formControlName]="'name'" />
                     @if (signUpForm.get('name').hasError('required')) {
-                        <mat-error> Full name is required </mat-error>
+                        <mat-error> Nombre completo es requerido </mat-error>
                     }
                 </mat-form-field>
 
@@ -52,7 +52,9 @@
                     <mat-label>Dirección de correo electrónico</mat-label>
                     <input id="email" matInput [formControlName]="'email'" />
                     @if (signUpForm.get('email').hasError('required')) {
-                        <mat-error> Dirección de correo electrónico is required </mat-error>
+                        <mat-error>
+                            Dirección de correo electrónico es requerido
+                        </mat-error>
                     }
                     @if (signUpForm.get('email').hasError('email')) {
                         <mat-error>
@@ -63,7 +65,7 @@
 
                 <!-- Password field -->
                 <mat-form-field class="w-full">
-                    <mat-label>Password</mat-label>
+                    <mat-label>Contraseña</mat-label>
                     <input
                         id="password"
                         matInput
@@ -94,7 +96,7 @@
                             ></mat-icon>
                         }
                     </button>
-                    <mat-error> Password is required </mat-error>
+                    <mat-error> Password es requerido </mat-error>
                 </mat-form-field>
 
                 <!-- Company field -->
@@ -114,18 +116,18 @@
                         [color]="'primary'"
                         [formControlName]="'agreements'"
                     >
-                        <span>I agree with</span>
+                        <span>Acepto los</span>
                         <a
                             class="ml-1 text-primary-500 hover:underline"
                             [routerLink]="['./']"
-                            >Terms
-                        </a>
-                        <span>and</span>
+                            >Términos</a
+                        >
+                        <span>y la</span>
                         <a
                             class="ml-1 text-primary-500 hover:underline"
                             [routerLink]="['./']"
-                            >Privacy Policy
-                        </a>
+                            >Política de Privacidad</a
+                        >
                     </mat-checkbox>
                 </div>
 
@@ -138,7 +140,7 @@
                     (click)="signUp()"
                 >
                     @if (!signUpForm.disabled) {
-                        <span> Create your free account </span>
+                        <span> Crear cuenta </span>
                     }
                     @if (signUpForm.disabled) {
                         <mat-progress-spinner

@@ -86,7 +86,7 @@ export class LoginService {
     }
 
      /**
-     * Sign up
+     * Crear cuenta
      *
      * @param user
      */
