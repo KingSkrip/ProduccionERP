@@ -25,6 +25,8 @@ import { CompactLayoutComponent } from './layouts/vertical/compact/compact.compo
 import { DenseLayoutComponent } from './layouts/vertical/dense/dense.component';
 import { FuturisticLayoutComponent } from './layouts/vertical/futuristic/futuristic.component';
 import { ThinLayoutComponent } from './layouts/vertical/thin/thin.component';
+import { FuseNavigationItem, FuseNavigationService, FuseVerticalNavigationComponent } from '@fuse/components/navigation';
+import { AuthService } from 'app/core/auth/auth.service';
 
 @Component({
     selector: 'layout',
@@ -52,6 +54,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
     scheme: 'dark' | 'light';
     theme: string;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
+    navigationItems: FuseNavigationItem[] = [];
 
     /**
      * Constructor
@@ -63,8 +66,10 @@ export class LayoutComponent implements OnInit, OnDestroy {
         private _router: Router,
         private _fuseConfigService: FuseConfigService,
         private _fuseMediaWatcherService: FuseMediaWatcherService,
-        private _fusePlatformService: FusePlatformService
-    ) {}
+        private _fusePlatformService: FusePlatformService,
+        private _fuseNavigationService: FuseNavigationService,
+        private _authService: AuthService
+    ) { }
 
     // -----------------------------------------------------------------------------------------------------
     // @ Lifecycle hooks
@@ -147,6 +152,43 @@ export class LayoutComponent implements OnInit, OnDestroy {
             this._document.body,
             this._fusePlatformService.osName
         );
+
+
+        this._authService.getUserRole()
+        .pipe(takeUntil(this._unsubscribeAll))
+        .subscribe(userRole => {
+            console.log("👤 Layout - Rol del usuario recibido:", userRole);
+            
+            if (userRole !== null) {
+                let navigation = this._fuseNavigationService.getNavigationByRole(userRole);
+
+                // CRÍTICO: Asegurarse que siempre sea un array válido
+                if (!navigation) {
+                    console.warn("⚠️ getNavigationByRole devolvió null/undefined");
+                    navigation = [];
+                } else if (!Array.isArray(navigation)) {
+                    console.warn("⚠️ getNavigationByRole no devolvió un array:", navigation);
+                    navigation = [];
+                }
+
+                this.navigationItems = navigation;
+
+                // Guardar en el storage (esto dispará el BehaviorSubject)
+                console.log("💾 Layout - Guardando navegación:", this.navigationItems);
+                this._fuseNavigationService.storeNavigation('main', this.navigationItems);
+
+                console.log("✅ Layout - Navegación guardada y emitida");
+            } else {
+                console.warn("⚠️ No hay rol de usuario");
+                this.navigationItems = [];
+                this._fuseNavigationService.storeNavigation('main', []);
+            }
+        });
+
+
+
+
+
     }
 
     /**

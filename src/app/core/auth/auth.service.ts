@@ -2,21 +2,25 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { AuthUtils } from 'app/core/auth/auth.utils';
 import { UserService } from 'app/core/user/user.service';
-import { catchError, Observable, of, switchMap, throwError } from 'rxjs';
+import { catchError, map, Observable, of, switchMap, throwError } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
+import { NavigationByRole, RoleEnum } from './roles/dataroles';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
     private _authenticated: boolean = false;
-    private _httpClient = inject(HttpClient);
-    private _userService = inject(UserService);
+
 
     private apiUrl = APP_CONFIG.apiUrl;
 
-
-    constructor() {
+    constructor(
+        private _httpClient: HttpClient,
+        private _userService: UserService,
+        
+    ) {
         this.checkStoredToken();
     }
+
 
     private checkStoredToken() {
         const token = this.accessToken;
@@ -116,4 +120,42 @@ export class AuthService {
         if (AuthUtils.isTokenExpired(this.accessToken)) return of(false);
         return this.signInUsingToken();
     }
+
+
+
+    getMenu(): string[] {
+        const user = this._userService.user;
+
+        if (!user || !user.permissions || !user.permissions.length) return [];
+
+        // Tomamos el primer permiso (puedes ajustarlo si tu app soporta multi-rol)
+        const roleId = user.permissions[0];
+
+        return NavigationByRole[roleId as RoleEnum] ?? [];
+    }
+
+ /**
+     * Obtener el rol principal del usuario
+     */
+getUserRole(): Observable<number | null> {
+    return this._userService.user$.pipe(
+        map(user => {
+            if (!user || !user.permissions || !user.permissions.length) {
+                console.log("No hay usuario o roles");
+                return null;
+            }
+            console.log("Roles del usuario:", user.permissions);
+            return user.permissions[0]; // primer rol
+        })
+    );
+}
+
+    /**
+     * Obtener el usuario completo (opcional)
+     */
+    getUser() {
+        return this._userService.user;
+    }
+
+    
 }

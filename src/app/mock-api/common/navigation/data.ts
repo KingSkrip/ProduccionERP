@@ -1165,11 +1165,12 @@ export const defaultNavigation: FuseNavigationItem[] = [
         ],
     },
 ];
+
 export const compactNavigation: FuseNavigationItem[] = [
     {
         id: 'dashboards',
         title: 'Dashboards',
-        tooltip: 'Dashboards',
+        tooltip: 'Inicio',
         type: 'aside',
         icon: 'heroicons_outline:home',
         children: [], // This will be filled from defaultNavigation so we don't have to manage multiple sets of the same navigation
@@ -1177,7 +1178,7 @@ export const compactNavigation: FuseNavigationItem[] = [
     {
         id: 'apps',
         title: 'Apps',
-        tooltip: 'Apps',
+        tooltip: 'Aplicación',
         type: 'aside',
         icon: 'heroicons_outline:squares-2x2',
         children: [], // This will be filled from defaultNavigation so we don't have to manage multiple sets of the same navigation
@@ -1185,7 +1186,7 @@ export const compactNavigation: FuseNavigationItem[] = [
     {
         id: 'pages',
         title: 'Pages',
-        tooltip: 'Pages',
+        tooltip: 'Paginas',
         type: 'aside',
         icon: 'heroicons_outline:document-duplicate',
         children: [], // This will be filled from defaultNavigation so we don't have to manage multiple sets of the same navigation
@@ -1193,7 +1194,7 @@ export const compactNavigation: FuseNavigationItem[] = [
     {
         id: 'user-interface',
         title: 'UI',
-        tooltip: 'UI',
+        tooltip: 'Interfaz de usuario',
         type: 'aside',
         icon: 'heroicons_outline:rectangle-stack',
         children: [], // This will be filled from defaultNavigation so we don't have to manage multiple sets of the same navigation
@@ -1207,6 +1208,7 @@ export const compactNavigation: FuseNavigationItem[] = [
         children: [], // This will be filled from defaultNavigation so we don't have to manage multiple sets of the same navigation
     },
 ];
+
 export const futuristicNavigation: FuseNavigationItem[] = [
     {
         id: 'dashboards',
@@ -1247,6 +1249,7 @@ export const futuristicNavigation: FuseNavigationItem[] = [
         children: [], // This will be filled from defaultNavigation so we don't have to manage multiple sets of the same navigation
     },
 ];
+
 export const horizontalNavigation: FuseNavigationItem[] = [
     {
         id: 'dashboards',
@@ -1282,5 +1285,42 @@ export const horizontalNavigation: FuseNavigationItem[] = [
         type: 'group',
         icon: 'heroicons_outline:bars-3',
         children: [], // This will be filled from defaultNavigation so we don't have to manage multiple sets of the same navigation
+    },
+];
+
+
+
+
+/**
+ * MENUS
+ */
+
+
+
+
+export const menuRh: FuseNavigationItem[] = [
+    {
+        id: 'rh-dashboard',
+        title: 'Dashboard',
+        type: 'basic',
+        icon: 'heroicons_outline:home',
+        link: '/rh/dashboard',
+    },
+    {
+        id: 'rh-empleados',
+        title: 'Empleados',
+        type: 'basic',
+        icon: 'heroicons_outline:users',
+        link: '/rh/empleados',
+    },
+];
+
+export const menuAdmin: FuseNavigationItem[] = [
+    {
+        id: 'admin-dashboard',
+        title: 'Dashboard',
+        type: 'basic',
+        icon: 'heroicons_outline:home',
+        link: '/admin/dashboard',
     },
 ];
