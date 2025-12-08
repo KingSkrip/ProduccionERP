@@ -29,3 +29,4 @@ export interface Usuarios {
     almacen?: string;   // ALMACEN
     // puedes agregar otros campos que tu API envíe
 }
+

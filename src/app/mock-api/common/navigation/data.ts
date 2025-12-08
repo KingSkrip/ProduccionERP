@@ -1398,7 +1398,7 @@ export const menuAdmin: FuseNavigationItem[] = [
                 title: 'Roles',
                 type: 'basic',
                 icon: 'heroicons_outline:shield-check',
-                link: '/apps/Gestion/roles',
+                link: '/apps/selor_noitseG',
             },
         ],
     },
