@@ -1387,6 +1387,13 @@ export const menuAdmin: FuseNavigationItem[] = [
                 link: '/apps/hr_noitseG',
             },
             {
+                id: 'cruds.colaboradores',
+                title: 'Colaboradores',
+                type: 'basic',
+                icon: 'heroicons_outline:users',
+                link: '/apps/rodarobaloc_noitseG',
+            },
+            {
                 id: 'cruds.roles',
                 title: 'Roles',
                 type: 'basic',
