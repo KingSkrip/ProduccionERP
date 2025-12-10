@@ -103,6 +103,7 @@ export const appRoutes: Route[] = [
 
                     { path: 'Gestion_nimdaus', loadChildren: () => import('app/modules/admin/cruds/usuarios/suadmin/suadmin.routes') },
                     { path: 'hr_noitseG', loadChildren: () => import('app/modules/admin/cruds/usuarios/rh/rh.routes') },
+                     { path: 'rodarobaloc_noitseG', loadChildren: () => import('app/modules/admin/cruds/usuarios/colaborador/colaborador.routes') },
                     { path: 'selor_noitseG', loadChildren: () => import('app/modules/admin/cruds/usuarios/roles/roles.routes') },
                     
                     { path: 'rodarobaloc_noitseG_ONE', loadChildren: () => import('app/modules/RH/cruds/usuarios/EmpresaOne/colaborador/colaborador.routes') },

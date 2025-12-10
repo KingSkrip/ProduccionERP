@@ -81,7 +81,7 @@
             </div>
 
             <!-- Paginador personalizado con estilo oscuro minimalista -->
-            <div class="flex justify-center space-x-2 p-4 bg-gray-900 text-gray-200">
+            <div class="flex justify-center space-x-2 p-4  dark:bg-gray-900 dark:text-white">
 
                 <!-- Botón anterior -->
                 <button class="px-3 py-1 rounded hover:bg-gray-700 transition-all duration-200" (click)="prevPage()"
@@ -128,7 +128,7 @@
                 <div class="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
 
                     <!-- Foto de perfil -->
-                    <div class="flex justify-center lg:col-span-3 lg:justify-start">
+                    <div class="flex justify-center lg:col-span-3">
                         <div class="flex flex-col items-center">
                             <div
                                 class="relative flex h-40 w-40 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-primary-200 bg-gray-50 shadow-lg transition-all hover:border-primary-400">
@@ -141,54 +141,44 @@
                     <!-- Campos del formulario -->
                     <div class="lg:col-span-9">
                         <!-- Sección: Información Personal -->
-                        <div class="mb-6">
-                            <h3 class="mb-4 text-lg font-semibold dark:text-white text-black border-b pb-2">
+                        <div class="mb-4">
+                            <h3 class="mb-3 text-base font-semibold dark:text-white text-black border-b pb-2">
                                 Información Personal
                             </h3>
-                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <div class="sm:col-span-2">
-                                    <mat-form-field class="w-full" appearance="outline">
-                                        <mat-label>Nombre completo</mat-label>
-                                        <input matInput formControlName="name"
-                                            placeholder="Ingresa el nombre completo" />
-                                        <mat-icon matPrefix class="text-gray-400">person</mat-icon>
-                                    </mat-form-field>
-                                </div>
+                            <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                                <mat-form-field class="w-full" appearance="outline">
+                                    <mat-label>Nombre completo</mat-label>
+                                    <input matInput formControlName="name" placeholder="Ingresa el nombre completo" />
+                                    <mat-icon matPrefix class="text-gray-400">person</mat-icon>
+                                </mat-form-field>
 
-                                <div class="sm:col-span-2">
-                                    <mat-form-field class="w-full" appearance="outline">
-                                        <mat-label>Correo electrónico</mat-label>
-                                        <input matInput type="email" formControlName="email"
-                                            placeholder="correo@ejemplo.com" />
-                                        <mat-icon matPrefix class="text-gray-400">email</mat-icon>
-                                    </mat-form-field>
-                                </div>
+                                <mat-form-field class="w-full" appearance="outline">
+                                    <mat-label>Correo electrónico</mat-label>
+                                    <input matInput type="email" formControlName="email"
+                                        placeholder="correo@ejemplo.com" />
+                                    <mat-icon matPrefix class="text-gray-400">email</mat-icon>
+                                </mat-form-field>
 
-                                <div class="sm:col-span-2">
-                                    <mat-form-field class="w-full" appearance="outline">
-                                        <mat-label>Departamento</mat-label>
-                                        <input matInput formControlName="departamento"
-                                            placeholder="Ej. Recursos Humanos" />
-                                        <mat-icon matPrefix class="text-gray-400">business</mat-icon>
-                                    </mat-form-field>
-                                </div>
+                                <mat-form-field class="w-full md:col-span-2" appearance="outline">
+                                    <mat-label>Departamento</mat-label>
+                                    <input matInput formControlName="departamento" placeholder="Ej. Recursos Humanos" />
+                                    <mat-icon matPrefix class="text-gray-400">business</mat-icon>
+                                </mat-form-field>
                             </div>
                         </div>
 
                         <!-- Sección: Credenciales de Acceso -->
                         <div>
-                            <h3 class="mb-4 text-lg font-semibold dark:text-white text-black border-b pb-2">
+                            <h3 class="mb-3 text-base font-semibold dark:text-white text-black border-b pb-2">
                                 Credenciales de Acceso
                             </h3>
-                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <div class="sm:col-span-2">
-                                    <mat-form-field class="w-full" appearance="outline">
-                                        <mat-label>Nombre de usuario</mat-label>
-                                        <input matInput formControlName="usuario" placeholder="usuario123"
-                                            autocomplete="off" />
-                                        <mat-icon matPrefix class="text-gray-400">account_circle</mat-icon>
-                                    </mat-form-field>
-                                </div>
+                            <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                                <mat-form-field class="w-full md:col-span-2" appearance="outline">
+                                    <mat-label>Nombre de usuario</mat-label>
+                                    <input matInput formControlName="usuario" placeholder="usuario123"
+                                        autocomplete="off" />
+                                    <mat-icon matPrefix class="text-gray-400">account_circle</mat-icon>
+                                </mat-form-field>
 
                                 <mat-form-field class="w-full" appearance="outline">
                                     <mat-label>Nueva contraseña</mat-label>
@@ -222,6 +212,7 @@
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
 

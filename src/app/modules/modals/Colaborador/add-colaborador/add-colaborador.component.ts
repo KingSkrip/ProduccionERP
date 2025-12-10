@@ -1,13 +1,11 @@
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output, ViewEncapsulation, } from '@angular/core';
-import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators, } from '@angular/forms';
+import { CommonModule, formatDate } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output, ViewEncapsulation } from '@angular/core';
+import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatOptionModule, MatRippleModule } from '@angular/material/core';
+import { MAT_DATE_FORMATS, MAT_DATE_LOCALE, MatNativeDateModule, MatOptionModule, MatRippleModule, provideNativeDateAdapter } from '@angular/material/core';
 import { MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
@@ -16,24 +14,30 @@ import { MatSortModule } from '@angular/material/sort';
 import { fuseAnimations } from '@fuse/animations';
 import { FuseConfirmationService } from '@fuse/services/confirmation';
 import { ColaboradorService } from 'app/modules/admin/cruds/usuarios/colaborador/colaborador.service';
-
-
-
+import { CustomValidators } from 'app/shared/validators/custom-validators';
 import { Subject, takeUntil } from 'rxjs';
+import { CatalogosService } from '../../modals.service';
+
+
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+
+interface Step {
+    id: number;
+    label: string;
+    fields: string[];
+}
 
 @Component({
     selector: 'add-colaborador',
     templateUrl: './add-colaborador.component.html',
     styleUrls: ['./add-colaborador.component.scss'],
-    encapsulation: ViewEncapsulation.None,
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    animations: fuseAnimations,
+    standalone: true,
     imports: [
         CommonModule,
         MatProgressBarModule,
-        MatFormFieldModule,
         MatIconModule,
-        MatInputModule,
         FormsModule,
         ReactiveFormsModule,
         MatButtonModule,
@@ -44,15 +48,32 @@ import { Subject, takeUntil } from 'rxjs';
         MatOptionModule,
         MatCheckboxModule,
         MatRippleModule,
+        MatNativeDateModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatDatepickerModule,
+
     ],
+    providers: [
+        provideNativeDateAdapter(),
+        { provide: MAT_DATE_LOCALE, useValue: 'es-MX' }
+    ],
+    encapsulation: ViewEncapsulation.None,
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    animations: fuseAnimations
 })
+
+
 export class AddcolaboradorComponent implements OnInit, OnDestroy {
     private _unsubscribeAll: Subject<any> = new Subject<any>();
     @Output() onCreated = new EventEmitter<void>();
+
+    readonly startDate = new Date(1990, 0, 1);
+
     newUsuarioForm: UntypedFormGroup;
     isLoading: boolean = false;
     newPhotoUrl: string = '';
-
+    fecha_alta_formateada: string = '';
     showPassword: boolean = false;
     showPasswordConfirmation: boolean = false;
     passwordStrength: number = 0;
@@ -60,33 +81,95 @@ export class AddcolaboradorComponent implements OnInit, OnDestroy {
     passwordStrengthColor: string = '';
     selectedPhotoFile: File | null = null;
 
-    /**
-     * Constructor
-     */
+    // Multi-step
+    currentStep: number = 1;
+    totalSteps: number = 6;
+    steps: Step[] = [
+        { id: 1, label: 'Personal', fields: ['name', 'email', 'telefono', 'curp'] },
+        { id: 2, label: 'Dirección', fields: ['direccion'] },
+        { id: 3, label: 'Administrativo', fields: ['departamento_id', 'empleo'] },
+        { id: 4, label: 'Fiscal/IMSS', fields: ['fiscal', 'seguridad_social'] },
+        { id: 5, label: 'Nómina', fields: ['nomina'] },
+        { id: 6, label: 'Credenciales', fields: ['usuario', 'password', 'password_confirmation'] }
+    ];
+
+    departamentos: any[] = [];
+
+
+
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
         private _fuseConfirmationService: FuseConfirmationService,
         private _formBuilder: UntypedFormBuilder,
         private _rhService: ColaboradorService,
         private _dialogRef: MatDialogRef<AddcolaboradorComponent>,
+        private catalogosService: CatalogosService
     ) { }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Lifecycle hooks
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * On init
-     */
     ngOnInit(): void {
+        this.initForm();
+    }
+
+    ngOnDestroy(): void {
+        this._unsubscribeAll.next(null);
+        this._unsubscribeAll.complete();
+    }
+
+    initForm(): void {
         this.newUsuarioForm = this._formBuilder.group({
-            id: [''],
-            name: ['', [Validators.required]],
-            email: ['', [Validators.required, Validators.email]],
-            departamento: [''],
-            desktop: [''],
-            usuario: ['', [Validators.required]],
-            password: ['', [Validators.required, Validators.minLength(6)]],
+            // Datos personales
+            name: ['', [Validators.required, CustomValidators.nombreCapitalizado()]],
+            email: ['', [Validators.required, CustomValidators.emailClean()]],
+            telefono: ['', [Validators.required, CustomValidators.telefono()]],
+            curp: ['', [Validators.required, CustomValidators.curpSimple()]],
+
+            // Dirección
+            direccion: this._formBuilder.group({
+                calle: ['', [Validators.required, CustomValidators.soloTextoCapitalizado()]],
+                no_ext: ['', [CustomValidators.limpiarBasico()]],
+                no_int: ['', [CustomValidators.limpiarBasico()]],
+                colonia: ['', [Validators.required, CustomValidators.soloTextoCapitalizado()]],
+                cp: ['', [Validators.required, CustomValidators.cp()]],
+                municipio: ['', [Validators.required, CustomValidators.soloTextoCapitalizado()]],
+                estado: ['', [Validators.required, CustomValidators.soloTextoCapitalizado()]],
+                entidad_federativa: ['', [CustomValidators.soloTextoCapitalizado()]]
+            }),
+
+            // Administrativo
+            departamento_id: [null],
+            empleo: this._formBuilder.group({
+                puesto: ['', [Validators.required, CustomValidators.puestoSimple()]],
+                fecha_inicio: [null, [Validators.required,CustomValidators.fechaDDMMYYYY()]],
+                fecha_fin: [null, [CustomValidators.fechaDDMMYYYY()]],
+                comentarios: ['', [CustomValidators.comentarioSimple()]]
+            }),
+
+            // Fiscal
+            fiscal: this._formBuilder.group({
+                rfc: ['', [Validators.required, CustomValidators.rfcSimple()]],
+                regimen_fiscal: ['', [Validators.required, CustomValidators.regimenFiscalSimple()]]
+            }),
+
+
+            // Seguridad Social
+            seguridad_social: this._formBuilder.group({
+                numero_imss: ['', [Validators.required, CustomValidators.noIMSS()]], // si quieres otro validador me dices
+                fecha_alta: [null, [Validators.required,CustomValidators.fechaDDMMYYYY()]],
+                tipo_seguro: ['', [Validators.required, CustomValidators.soloTextoCapitalizado()]]
+            }),
+
+            // Nómina
+            nomina: this._formBuilder.group({
+                numero_tarjeta: ['', [Validators.required, CustomValidators.numeroTarjeta()]],
+                banco: ['', [Validators.required, CustomValidators.bancoSimple()]],
+                clabe_interbancaria: ['', [Validators.required, CustomValidators.clabe()]],
+                salario_base: ['', [Validators.required, CustomValidators.salario()]],
+                frecuencia_pago: ['', [Validators.required]]
+            }),
+
+            // Credenciales
+            usuario: ['', [Validators.required, CustomValidators.usuarioSimple()]],
+            password: ['', [Validators.required, CustomValidators.passwordFuerte()]],
             password_confirmation: ['', [Validators.required]],
         });
 
@@ -96,34 +179,48 @@ export class AddcolaboradorComponent implements OnInit, OnDestroy {
     }
 
 
-    /**
-     * On destroy
-     */
-    ngOnDestroy(): void {
-        this._unsubscribeAll.next(null);
-        this._unsubscribeAll.complete();
+    ngAfterViewInit(): void {
+        // ✔ se ejecuta cuando la vista YA está lista
+        setTimeout(() => {
+            this.loadDepartamentos();
+            this._changeDetectorRef.markForCheck();
+        });
     }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Public methods
-    // -----------------------------------------------------------------------------------------------------
 
-    /**
-     * Cerrar modal
-     */
+    loadDepartamentos(): void {
+        this.catalogosService.getDepartamentos().subscribe({
+            next: (data) => this.departamentos = data,
+            error: (err) => console.error(err)
+        });
+    }
+
     closeModal(): void {
         this.newUsuarioForm.reset();
-        this.newPhotoUrl = '';
+        this.currentStep = 1;
+        this.newPhotoUrl;
         this.selectedPhotoFile = null;
         this._dialogRef.close(false);
     }
 
-    /**
-     * Manejar selección de foto
-     */
+    nextStep(): void {
+        if (this.currentStep < this.totalSteps) {
+            this.currentStep++;
+            this._changeDetectorRef.markForCheck();
+        }
+    }
+
+    previousStep(): void {
+        if (this.currentStep > 1) {
+            this.currentStep--;
+            this._changeDetectorRef.markForCheck();
+        }
+    }
+
     onPhotoSelected(event: any): void {
         const file = event.target.files[0];
         if (!file) return;
+
         this.selectedPhotoFile = file;
         const reader = new FileReader();
         reader.onload = () => {
@@ -132,51 +229,11 @@ export class AddcolaboradorComponent implements OnInit, OnDestroy {
         };
         reader.readAsDataURL(file);
     }
-    /**
-     * Submit del formulario
-     */
+
     submitForm(): void {
         if (this.newUsuarioForm.invalid) {
             this.newUsuarioForm.markAllAsTouched();
-
-            // ✅ Mostrar qué campos faltan
-            const errors: string[] = [];
-            Object.keys(this.newUsuarioForm.controls).forEach(key => {
-                const control = this.newUsuarioForm.get(key);
-                if (control?.invalid) {
-                    if (control.errors?.['required']) {
-                        errors.push(`El campo ${key} es obligatorio`);
-                    }
-                    if (control.errors?.['email']) {
-                        errors.push(`El campo ${key} debe ser un correo válido`);
-                    }
-                    if (control.errors?.['minlength']) {
-                        errors.push(`El campo ${key} debe tener al menos ${control.errors['minlength'].requiredLength} caracteres`);
-                    }
-                }
-            });
-
-            if (errors.length > 0) {
-                this._fuseConfirmationService.open({
-                    title: 'Formulario incompleto',
-                    message: errors.join('\n• '),
-                    icon: {
-                        show: true,
-                        name: 'heroicons_outline:exclamation-triangle',
-                        color: 'warn',
-                    },
-                    actions: {
-                        confirm: {
-                            show: true,
-                            label: 'Aceptar',
-                            color: 'warn',
-                        },
-                        cancel: {
-                            show: false,
-                        },
-                    },
-                });
-            }
+            this.showValidationErrors();
             return;
         }
 
@@ -193,14 +250,8 @@ export class AddcolaboradorComponent implements OnInit, OnDestroy {
                     color: 'warn',
                 },
                 actions: {
-                    confirm: {
-                        show: true,
-                        label: 'Aceptar',
-                        color: 'warn',
-                    },
-                    cancel: {
-                        show: false,
-                    },
+                    confirm: { show: true, label: 'Aceptar', color: 'warn' },
+                    cancel: { show: false },
                 },
             });
             return;
@@ -208,79 +259,75 @@ export class AddcolaboradorComponent implements OnInit, OnDestroy {
 
         this.createUsuario();
     }
-    /**
-     * Crear usuario
-     */
 
     createUsuario(): void {
-        if (this.newUsuarioForm.invalid) {
-            this.newUsuarioForm.markAllAsTouched();
-            return;
-        }
+        if (this.isLoading) return;
 
-        // ✅ Crear FormData en lugar de enviar JSON
+        this.isLoading = true;
+        this._changeDetectorRef.markForCheck();
+
         const formData = new FormData();
-        formData.append('name', this.newUsuarioForm.get('name')?.value);
-        formData.append('email', this.newUsuarioForm.get('email')?.value);
-        formData.append('password', this.newUsuarioForm.get('password')?.value);
-        formData.append('usuario', this.newUsuarioForm.get('usuario')?.value);
+        const formValue = this.newUsuarioForm.value;
 
-        // Campos opcionales
-        if (this.newUsuarioForm.get('departamento')?.value) {
-            formData.append('departamento', this.newUsuarioForm.get('departamento')?.value);
-        }
-        if (this.newUsuarioForm.get('desktop')?.value) {
-            formData.append('desktop', this.newUsuarioForm.get('desktop')?.value);
-        }
+        // Datos personales
+        formData.append('name', formValue.name);
+        formData.append('email', formValue.email);
+        formData.append('usuario', formValue.usuario);
+        formData.append('password', formValue.password);
 
-        // ✅ Agregar foto si existe
+        if (formValue.telefono) formData.append('telefono', formValue.telefono);
+        if (formValue.curp) formData.append('curp', formValue.curp);
+        if (formValue.departamento_id) formData.append('departamento_id', formValue.departamento_id);
+
+        // Foto
         if (this.selectedPhotoFile) {
             formData.append('photo', this.selectedPhotoFile, this.selectedPhotoFile.name);
         }
 
-        this.isLoading = true;
+        // JSON anidados
+        const groups = ['direccion', 'empleo', 'fiscal', 'seguridad_social', 'nomina'];
+        for (const g of groups) {
+            const groupValue = formValue[g];
+            if (groupValue && Object.values(groupValue).some(v => v !== null && v !== '')) {
+                formData.append(g, JSON.stringify(groupValue));
+            }
+        }
 
         this._rhService.createUsuario(formData)
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe({
                 next: (newUser) => {
-                      this._rhService.getUsuarios().subscribe();
+                    this.isLoading = false;
+                    this._changeDetectorRef.markForCheck();
+
+                    this._rhService.getUsuarios().subscribe();
+
                     this._fuseConfirmationService.open({
                         title: 'Éxito',
-                        message: 'Superadmin creado correctamente',
+                        message: 'Colaborador creado correctamente',
                         icon: {
                             show: true,
                             name: 'heroicons_outline:check-circle',
                             color: 'success',
                         },
                         actions: {
-                            confirm: {
-                                show: true,
-                                label: 'Aceptar',
-                                color: 'primary',
-                            },
+                            confirm: { show: true, label: 'Aceptar', color: 'primary' },
                             cancel: { show: false },
                         },
                     });
 
-                
-
                     this._dialogRef.close(newUser);
+                },
 
+                error: (err) => {
                     this.isLoading = false;
                     this._changeDetectorRef.markForCheck();
-                    this.newUsuarioForm.reset();
-                },
-                error: (err) => {
-                    console.error('Error al crear', err);
 
-                    // ✅ Formatear errores de validación
-                    let errorMessage = err.error?.message || 'Ocurrió un error al crear el superadmin';
+                    console.error('Error al crear', err);
+                    let errorMessage = err.error?.message || 'Ocurrió un error al crear el colaborador';
 
                     if (err.error?.errors) {
-                        const errorList = Object.values(err.error.errors)
-                            .flat()
-                            .join('\n• ');
+                        const errorList = Object.values(err.error.errors).flat().join('\n• ');
                         errorMessage = `${err.error.message}\n\n• ${errorList}`;
                     }
 
@@ -293,51 +340,57 @@ export class AddcolaboradorComponent implements OnInit, OnDestroy {
                             color: 'warn',
                         },
                         actions: {
-                            confirm: {
-                                show: true,
-                                label: 'Aceptar',
-                                color: 'warn',
-                            },
+                            confirm: { show: true, label: 'Aceptar', color: 'warn' },
                             cancel: { show: false },
                         },
                     });
-
-                    this.isLoading = false;
-                    this._changeDetectorRef.markForCheck();
                 }
             });
     }
 
 
+    showValidationErrors(): void {
+        const errors: string[] = [];
+        Object.keys(this.newUsuarioForm.controls).forEach(key => {
+            const control = this.newUsuarioForm.get(key);
+            if (control?.invalid) {
+                if (control.errors?.['required']) {
+                    errors.push(`El campo ${key} es obligatorio`);
+                }
+                if (control.errors?.['email']) {
+                    errors.push(`El campo ${key} debe ser un correo válido`);
+                }
+                if (control.errors?.['minlength']) {
+                    errors.push(`El campo ${key} debe tener al menos ${control.errors['minlength'].requiredLength} caracteres`);
+                }
+            }
+        });
 
-    /**
-     * Track by function for ngFor loops
-     *
-     * @param index
-     * @param item
-     */
-    trackByFn(index: number, item: any): any {
-        return item.id || index;
+        if (errors.length > 0) {
+            this._fuseConfirmationService.open({
+                title: 'Formulario incompleto',
+                message: errors.join('\n• '),
+                icon: {
+                    show: true,
+                    name: 'heroicons_outline:exclamation-triangle',
+                    color: 'warn',
+                },
+                actions: {
+                    confirm: { show: true, label: 'Aceptar', color: 'warn' },
+                    cancel: { show: false },
+                },
+            });
+        }
     }
 
-    /**
-     * Toggle password visibility
-     */
     togglePasswordVisibility(): void {
         this.showPassword = !this.showPassword;
     }
 
-    /**
-     * Toggle password confirmation visibility
-     */
     togglePasswordConfirmationVisibility(): void {
         this.showPasswordConfirmation = !this.showPasswordConfirmation;
     }
 
-
-    /**
-     * Check password strength
-     */
     checkPasswordStrength(password: string): void {
         if (!password) {
             this.passwordStrength = 0;
@@ -347,7 +400,6 @@ export class AddcolaboradorComponent implements OnInit, OnDestroy {
         }
 
         let strength = 0;
-
         if (password.length >= 8) strength += 20;
         if (password.length >= 12) strength += 10;
         if (/[a-z]/.test(password)) strength += 20;
@@ -369,19 +421,12 @@ export class AddcolaboradorComponent implements OnInit, OnDestroy {
         }
     }
 
-    /**
-     * Check if passwords match
-     */
     passwordsMatch(): boolean {
         const password = this.newUsuarioForm.get('password')?.value;
         const confirmation = this.newUsuarioForm.get('password_confirmation')?.value;
         return password === confirmation && password !== '';
     }
 
-
-    /**
-     * Check if passwords don't match and confirmation is touched
-     */
     passwordsDontMatch(): boolean {
         const password = this.newUsuarioForm.get('password')?.value;
         const confirmation = this.newUsuarioForm.get('password_confirmation')?.value;
@@ -392,5 +437,11 @@ export class AddcolaboradorComponent implements OnInit, OnDestroy {
     blockPaste(event: ClipboardEvent): void {
         event.preventDefault();
     }
+
+    trackByFn(index: number, item: any): any {
+        return item.id || index;
+    }
+
+
 
 }

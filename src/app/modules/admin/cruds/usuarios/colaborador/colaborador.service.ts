@@ -76,47 +76,83 @@ export class ColaboradorService {
         );
     }
 
-    // Actualizar superadmin
-    updateUsuario(id: string, usuario: { name: string, email: string, password?: string }): Observable<Usuarios> {
-        return this.usuarios$.pipe(
-            take(1),
-            switchMap(usuarios =>
-                this._httpClient.put<{ message: string, user: Usuarios }>(`${this.apiUrl}colaborador/suadmin/${id}`, usuario)
-                    .pipe(
-                        tap(response => {
-                            const updatedUsuarios = (usuarios || []).map(u => u.id === id ? response.user : u);
-                            this._usuarios.next(updatedUsuarios);
-                        }),
-                        map(response => response.user)
-                    )
+   /**
+ * Actualizar colaborador
+ */
+updateUsuario(id: number, data: FormData | any): Observable<Usuarios> {
+    return this.usuarios$.pipe(
+        take(1),
+        switchMap(usuarios =>
+            this._httpClient.post<{ message: string, user: Usuarios }>(  // <--- AQUÍ: put en vez de post
+                `${this.apiUrl}colaborador/${id}/update`,
+                data
+            ).pipe(
+                tap(response => {
+                    const updatedUser = {
+                        ...response.user,
+                        name: response.user.nombre || response.user.name,
+                        email: response.user.correo || response.user.email
+                    };
+                    const updatedUsuarios = (usuarios || []).map(u => 
+                        u.id === id ? updatedUser : u
+                    );
+                    this._usuarios.next(updatedUsuarios);
+                }),
+                map(response => ({
+                    ...response.user,
+                    name: response.user.nombre || response.user.name,
+                    email: response.user.correo || response.user.email
+                })),
+                catchError(error => {
+                    console.error('Error al actualizar colaborador', error);
+                    return throwError(() => error);
+                })
             )
-        );
-    }
+        )
+    );
+}
 
-    // Eliminar superadmin
-    deleteUsuario(id: string): Observable<boolean> {
+    /**
+     * Eliminar colaborador
+     */
+    deleteUsuario(id: number): Observable<boolean> {
         return this.usuarios$.pipe(
             take(1),
             switchMap(usuarios =>
-                this._httpClient.delete<{ message: string, user: Usuarios }>(`${this.apiUrl}colaborador/suadmin/${id}`)
+                this._httpClient.delete<{ message: string }>(`${this.apiUrl}colaborador/${id}`)
                     .pipe(
                         tap(() => {
                             const updatedUsuarios = (usuarios || []).filter(u => u.id !== id);
                             this._usuarios.next(updatedUsuarios);
                         }),
-                        map(() => true)
+                        map(() => true),
+                        catchError(error => {
+                            console.error('Error al eliminar colaborador', error);
+                            return throwError(() => error);
+                        })
                     )
             )
         );
     }
 
 
-
-
-    addUsuarioToList(newUser: Usuarios) {
-        const current = this._usuarios.getValue();
-        this._usuarios.next([newUser, ...current]);
+   /**
+     * Agregar usuario a la lista (helper method)
+     */
+    addUsuarioToList(newUser: Usuarios): void {
+        const current = this._usuarios.getValue() || [];
+        const userWithAliases = {
+            ...newUser,
+            name: newUser.nombre,
+            email: newUser.correo
+        };
+        this._usuarios.next([userWithAliases, ...current]);
     }
 
+
+
+    updateUsuarioStatus(id: number, status_id: number): Observable<any> {
+  return this._httpClient.put(`${this.apiUrl}colaborador/usuarios/${id}/status`, { status_id });
+}
 
 }
