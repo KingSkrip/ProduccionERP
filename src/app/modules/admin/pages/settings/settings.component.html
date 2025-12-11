@@ -75,7 +75,7 @@
                     }
                     <!-- Security -->
                     @case ('security') {
-                    @if (user?.permissions !== 1) {
+                    @if (user?.permissions !== 3 || user?.permissions !== 2) {
                     <settings-security></settings-security>
                     }
                     }
